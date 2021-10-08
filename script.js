@@ -11,7 +11,7 @@ var speed1Y = 0
 var jumping1 = false
 var jumpPower = 5
 var wReleased = true
-var swordRadius = 10
+var swordRadius = 30
 var sword1X = player1X
 var sword1Y = player1Y
 var sword1SpeedX = 0
@@ -19,6 +19,22 @@ var sword1SpeedY = 0
 var player1HasSword = true
 var throwPower = 5
 var sword1Grounded = false
+var swordRightSpr = new Image()
+swordRightSpr.src = "sprites/pirate_sword_right.png"
+var swordLeftSpr = new Image()
+swordLeftSpr.src = "sprites/pirate_sword_left.png"
+var sword1 = swordRightSpr
+var swordThrownRightSprSh = []
+swordThrownRightSprSh.length = 4
+for (i=0; i < swordThrownRightSprSh.length; i++) {
+	swordThrownRightSprSh[i] = new Image()
+	swordThrownRightSprSh[i].src = " sprites/pirate_sword_thrown ("+i.toString()+").png"
+}
+var throw1Anim = 0
+var swordGroundedRightSpr = new Image()
+swordGroundedRightSpr.src = "sprites/pirate_sword_grounded_right.png"
+var swordGroundedLeftSpr = new Image()
+swordGroundedLeftSpr.src = "sprites/pirate_sword_grounded_left.png"
 
 // **need to add code to keep track of which sword each player is controlling**
 
@@ -37,6 +53,7 @@ function keyDownHandler(e) {
 		} // if player1 has a sword, throw it
 		else if (player1HasSword) {
 			player1HasSword = false
+			throw1Anim = 0
 			if (speed1X > 0) {
 				sword1SpeedX = throwPower
 			} else {
@@ -63,19 +80,20 @@ function drawPlayer1() {
 }
 
 function drawSword1() {
-	ctx.beginPath()
-	ctx.arc(sword1X, sword1Y, swordRadius, 0, Math.PI*2)
-	ctx.fillStyle = "#F70000"
-	ctx.fill()
-	ctx.closePath()
+	// ctx.beginPath()
+	// ctx.arc(sword1X, sword1Y, swordRadius, 0, Math.PI*2)
+	// ctx.fillStyle = "#F70000"
+	// ctx.fill()
+	// ctx.closePath()
+	ctx.drawImage(sword1,sword1X,sword1Y,swordRadius,swordRadius)
 }
 
 function detectCollision() {
 	// if player1 collides with sword1
 	if (player1X < sword1X + swordRadius &&
-		player1X + playerWidth > sword1X - swordRadius &&
+		player1X + playerWidth > sword1X &&
 		player1Y < sword1Y + swordRadius &&
-		player1Y + playerHeight > sword1Y - swordRadius) {
+		player1Y + playerHeight > sword1Y) {
 		// if player1 doesn't have sword and sword1 is grounded, pick up sword1
 		if (!player1HasSword && sword1Grounded) {
 			player1HasSword = true
@@ -112,27 +130,45 @@ function draw() {
 	// if player1 has sword, make sword follow player1
 	if (player1HasSword) {
 		if (speed1X > 0) {
-			sword1X = player1X
+			sword1X = player1X-swordRadius/2
+			sword1 = swordRightSpr
 		} else {
-			sword1X = player1X + playerWidth
+			sword1X = player1X + playerWidth-swordRadius/2
+			sword1 = swordLeftSpr
 		}
 		sword1Y = player1Y
 	} // if player1 doesn't have sword and sword is not grounded, then it is being thrown
 	else if (!sword1Grounded) {
 		sword1SpeedY += gravity
+		sword1 = swordThrownRightSprSh[throw1Anim]
+		throw1Anim++
+		if (throw1Anim >= swordThrownRightSprSh.length) {
+			throw1Anim = 0
+		}
+
 	}
 	sword1X += sword1SpeedX
 	sword1Y += sword1SpeedY
 	// flip direction of sword1 when it gets to edge
-	if (sword1X+sword1SpeedX < swordRadius || sword1X+sword1SpeedX > canvas.width-swordRadius) {
+	if (sword1X+sword1SpeedX < 0) {
 		sword1SpeedX = -sword1SpeedX
+		sword1 = swordRightSpr
+	} else if (sword1X+sword1SpeedX > canvas.width-swordRadius) {
+		sword1SpeedX = -sword1SpeedX
+		sword1 = swordLeftSpr
 	}
 	// if sword1 reaches the ground, stop its movement
 	if (sword1Y+sword1SpeedY > canvas.height - swordRadius) {
 		sword1Grounded = true
 		sword1Y = canvas.height - swordRadius
+		if (sword1SpeedX > 0) {
+			sword1 = swordGroundedRightSpr
+		} else {
+			sword1 = swordGroundedLeftSpr
+		}
 		sword1SpeedX = 0
 		sword1SpeedY = 0
+		
 	}
 
 	requestAnimationFrame(draw)
