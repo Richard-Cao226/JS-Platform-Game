@@ -9,6 +9,10 @@ h1 {
 	margin: 20px;
 }
 
+h2 {
+	text-align:  center;
+}
+
 #myCanvas {
 	background: #eee;
 	display: block;
