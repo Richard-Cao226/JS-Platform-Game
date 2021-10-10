@@ -1,28 +1,29 @@
 var canvas = document.getElementById('myCanvas')
 var ctx = canvas.getContext('2d')
+var fps, fpsInterval, startTime, now, then, elapsed;
 
-var gravity = 0.3
-var playerWidth = 30
-var playerHeight = 30
+var gravity = 1
+var playerWidth = 50
+var playerHeight = 50
 var paused = false
-var jumpingXSpeed = 1.8
-var walkingXSpeed = 2
+var jumpingXSpeed = 3.5
+var walkingXSpeed = 4
+var throwPower = 13
+var jumpPower = 13
+var swordRadius = 30
 
 var player1X = 50
 var player1Y = canvas.height - playerHeight
 var speed1X = walkingXSpeed
 var speed1Y = 0
 var jumping1 = false
-var jumpPower = 7
 var wReleased = true
-var swordRadius = 30
 var sword1X = player1X-swordRadius/2
 var sword1Y = player1Y
 var sword1SpeedX = 0
 var sword1SpeedY = 0
 var holding1Player = 1
 var player1HasSword = true
-var throwPower = 7
 var sword1Grounded = false
 var swordRightSpr = new Image()
 swordRightSpr.src = "sprites/pirate_sword_right.png"
@@ -55,14 +56,38 @@ var swordThrownRightSprSh = []
 swordThrownRightSprSh.length = 4
 for (i=0; i < swordThrownRightSprSh.length; i++) {
 	swordThrownRightSprSh[i] = new Image()
-	swordThrownRightSprSh[i].src = " sprites/pirate_sword_thrown ("+i.toString()+").png"
+	swordThrownRightSprSh[i].src = "sprites/bone_thrown ("+i.toString()+").png"
 }
 var throw1Anim = 0
 var throw2Anim = 0
 var swordGroundedRightSpr = new Image()
-swordGroundedRightSpr.src = "sprites/pirate_sword_grounded_right.png"
+swordGroundedRightSpr.src = "sprites/bone_grounded.png"
 var swordGroundedLeftSpr = new Image()
-swordGroundedLeftSpr.src = "sprites/pirate_sword_grounded_left.png"
+swordGroundedLeftSpr.src = "sprites/bone_grounded.png"
+
+var runAnim1 = 0
+var runAnim2 = 0
+var runLeft = []
+runLeft.length = 8
+var runRight = []
+runRight.length = 8
+var runWithBoneLeft = []
+runWithBoneLeft.length = 8
+var runWithBoneRight = []
+runWithBoneRight.length = 8
+for (i=0; i<runWithBoneLeft.length; i++) {
+	runLeft[i] = new Image()
+	runLeft[i].src = "sprites/running ("+i.toString()+").png"
+	runRight[i] = new Image()
+	runRight[i].src = "sprites/running_right ("+i.toString()+").png"
+	runWithBoneLeft[i] = new Image()
+	runWithBoneLeft[i].src = "sprites/running_with_bone ("+i.toString()+").png"
+	runWithBoneRight[i] = new Image()
+	runWithBoneRight[i].src = "sprites/running_with_bone_right ("+i.toString()+").png"
+}
+
+var player1 = runWithBoneRight[0]
+var player2 = runWithBoneLeft[0]
 
 var platforms = []
 var platformWidth = 100
@@ -80,6 +105,13 @@ function drawPlatforms() {
 		ctx.fill()
 		ctx.closePath()
 	}
+}
+
+function startAnimating(fps) {
+    fpsInterval = 1000 / fps;
+    then = Date.now();
+    startTime = then;
+    draw();
 }
 
 function reset() {
@@ -121,6 +153,10 @@ function reset() {
 	whichPlatformOn1 = -1
 	throw1Anim = 0
 	throw2Anim = 0
+	runAnim1 = 0
+	runAnim2 = 0
+	player1 = runWithBoneRight[0]
+	player2 = runWithBoneLeft[0]
 }
 
 document.addEventListener("keydown", keyDownHandler)
@@ -224,27 +260,23 @@ function togglePause() {
 }
 
 function drawPlayer1() {
-	ctx.beginPath()
-	ctx.rect(player1X, player1Y, playerWidth, playerHeight)
-	ctx.fillStyle = "#1BA8F1"
-	ctx.fill()
-	ctx.closePath()
+	ctx.drawImage(player1,player1X,player1Y,playerWidth,playerHeight)
 }
 
 function drawPlayer2() {
-	ctx.beginPath()
-	ctx.rect(player2X, player2Y, playerWidth, playerHeight)
-	ctx.fillStyle = "#CB1D1D"
-	ctx.fill()
-	ctx.closePath()
+	ctx.drawImage(player2,player2X,player2Y,playerWidth,playerHeight)
 }
 
 function drawSword1() {
-	ctx.drawImage(sword1,sword1X,sword1Y,swordRadius,swordRadius)
+	if (holding1Player == 0) {
+		ctx.drawImage(sword1,sword1X,sword1Y,swordRadius,swordRadius)
+	}
 }
 
 function drawSword2() {
-	ctx.drawImage(sword2,sword2X,sword2Y,swordRadius,swordRadius)
+	if (holding2Player == 0) {
+		ctx.drawImage(sword2,sword2X,sword2Y,swordRadius,swordRadius)
+	}
 }
 
 function detectCollision() {
@@ -397,7 +429,33 @@ function player1SwordHandler() {
 			}
 			sword2Y = player1Y - swordRadius
 		}
-
+		if (speed1X > 0) {
+			runAnim1++
+			if (runAnim1 >= runWithBoneRight.length) {
+				runAnim1 = 0
+			}
+			player1 = runWithBoneRight[runAnim1]
+		} else {
+			runAnim1++
+			if (runAnim1 >= runWithBoneLeft.length) {
+				runAnim1 = 0
+			}
+			player1 = runWithBoneLeft[runAnim1]
+		}
+	} else {
+		if (speed1X > 0) {
+			runAnim1++
+			if (runAnim1 >= runRight.length) {
+				runAnim1 = 0
+			}
+			player1 = runRight[runAnim1]
+		} else {
+			runAnim1++
+			if (runAnim1 >= runLeft.length) {
+				runAnim1 = 0
+			}
+			player1 = runLeft[runAnim1]
+		}
 	}
 }
 
@@ -422,7 +480,33 @@ function player2SwordHandler() {
 			}
 			sword2Y = player2Y - swordRadius
 		}
-
+		if (speed2X > 0) {
+			runAnim2++
+			if (runAnim2 >= runWithBoneRight.length) {
+				runAnim2 = 0
+			}
+			player2 = runWithBoneRight[runAnim2]
+		} else {
+			runAnim2++
+			if (runAnim2 >= runWithBoneLeft.length) {
+				runAnim2 = 0
+			}
+			player2 = runWithBoneLeft[runAnim2]
+		}
+	} else {
+		if (speed2X > 0) {
+			runAnim2++
+			if (runAnim2 >= runRight.length) {
+				runAnim2 = 0
+			}
+			player2 = runRight[runAnim2]
+		} else {
+			runAnim2++
+			if (runAnim2 >= runLeft.length) {
+				runAnim2 = 0
+			}
+			player2 = runLeft[runAnim2]
+		}
 	}
 }
 
@@ -512,79 +596,88 @@ function checkWin() {
 }
 
 function draw() {
-	ctx.clearRect(0,0,canvas.width,canvas.height)
-	
-	checkWin()
-	drawPlayer1()
-	player1SwordHandler()
-	drawPlayer2()
-	player2SwordHandler()
-	drawSword1()
-	sword1Handler()
-	drawSword2()
-	sword2Handler()
-	drawPlatforms()
-	detectCollision()
-	detectPlatformCollisions()
-	platformHandler()
-	
-
-	player1X += speed1X
-	// flip direction when player1 reaches edge
-	if (player1X + speed1X < 0 || player1X + speed1X > canvas.width-playerWidth) {
-		speed1X = -speed1X
-	}
-
-	// player1 jumping code
-	player1Y += speed1Y
-	if (jumping1) {
-		if (speed1X > 0) {
-			speed1X = jumpingXSpeed
-		} else {
-			speed1X = -jumpingXSpeed
-		}
-		speed1Y += gravity
-	}
-	// when player1 reaches ground, stop jumping
-	if (player1Y + speed1Y > canvas.height - playerHeight) {
-		player1Y = canvas.height - playerHeight
-		jumping1 = false
-		speed1Y = 0
-		if (speed1X > 0) {
-			speed1X = walkingXSpeed
-		} else {
-			speed1X = -walkingXSpeed
-		}
-	}
-
-	player2X += speed2X
-	if (player2X + speed2X < 0 || player2X + speed2X > canvas.width-playerWidth) {
-		speed2X = -speed2X
-	}
-	player2Y += speed2Y
-	if (jumping2) {
-		if (speed2X > 0) {
-			speed2X = jumpingXSpeed
-		} else {
-			speed2X = -jumpingXSpeed
-		}
-		speed2Y += gravity
-	}
-	if (player2Y + speed2Y > canvas.height - playerHeight) {
-		player2Y = canvas.height - playerHeight
-		jumping2 = false
-		speed2Y = 0
-		if (speed2X > 0) {
-			speed2X = walkingXSpeed
-		} else {
-			speed2X = -walkingXSpeed
-		}
-	}
-
 	if (!paused) {
 		requestAnimationFrame(draw)
 	}
 
+	now = Date.now();
+    elapsed = now - then;
+
+    if (elapsed > fpsInterval) {
+
+        then = now - (elapsed % fpsInterval);
+
+        ctx.clearRect(0,0,canvas.width,canvas.height)
+	
+		checkWin()
+		drawPlayer1()
+		player1SwordHandler()
+		drawPlayer2()
+		player2SwordHandler()
+		drawSword1()
+		sword1Handler()
+		drawSword2()
+		sword2Handler()
+		drawPlatforms()
+		detectCollision()
+		detectPlatformCollisions()
+		platformHandler()
+		
+
+		player1X += speed1X
+		// flip direction when player1 reaches edge
+		if (player1X + speed1X < 0 || player1X + speed1X > canvas.width-playerWidth) {
+			speed1X = -speed1X
+		}
+
+		// player1 jumping code
+		player1Y += speed1Y
+		if (jumping1) {
+			if (speed1X > 0) {
+				speed1X = jumpingXSpeed
+			} else {
+				speed1X = -jumpingXSpeed
+			}
+			speed1Y += gravity
+		}
+		// when player1 reaches ground, stop jumping
+		if (player1Y + speed1Y > canvas.height - playerHeight) {
+			player1Y = canvas.height - playerHeight
+			jumping1 = false
+			speed1Y = 0
+			if (speed1X > 0) {
+				speed1X = walkingXSpeed
+			} else {
+				speed1X = -walkingXSpeed
+			}
+		}
+
+		player2X += speed2X
+		if (player2X + speed2X < 0 || player2X + speed2X > canvas.width-playerWidth) {
+			speed2X = -speed2X
+		}
+		player2Y += speed2Y
+		if (jumping2) {
+			if (speed2X > 0) {
+				speed2X = jumpingXSpeed
+			} else {
+				speed2X = -jumpingXSpeed
+			}
+			speed2Y += gravity
+		}
+		if (player2Y + speed2Y > canvas.height - playerHeight) {
+			player2Y = canvas.height - playerHeight
+			jumping2 = false
+			speed2Y = 0
+			if (speed2X > 0) {
+				speed2X = walkingXSpeed
+			} else {
+				speed2X = -walkingXSpeed
+			}
+		}
+
+    }
+
 }
 
-draw()
+startAnimating(30)
