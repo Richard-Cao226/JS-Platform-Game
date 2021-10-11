@@ -11,6 +11,8 @@ var walkingXSpeed = 4
 var throwPower = 13
 var jumpPower = 13
 var swordRadius = 30
+var playerXOffset = 16
+var playerYOffset = 8
 
 var player1X = 50
 var player1Y = canvas.height - playerHeight
@@ -171,7 +173,6 @@ function keyDownHandler(e) {
 			jumping1 = true
 			speed1Y = -jumpPower
 			wReleased = false
-			whichPlatformOn1 = -1
 		} // if player1 has a sword, throw it
 		else if (player1HasSword) {
 			player1HasSword = false
@@ -281,60 +282,60 @@ function drawSword2() {
 
 function detectCollision() {
 	// if player1 collides with sword1, sword1 is grounded, and player doesn't have a sword, pick up the sword
-	if (player1X < sword1X + swordRadius &&
-		player1X + playerWidth > sword1X &&
-		player1Y < sword1Y + swordRadius &&
+	if (player1X + playerXOffset < sword1X + swordRadius &&
+		player1X + playerWidth - playerXOffset > sword1X &&
+		player1Y + playerYOffset < sword1Y + swordRadius &&
 		player1Y + playerHeight > sword1Y && 
 		sword1Grounded && !player1HasSword) {
 			player1HasSword = true
 			sword1Grounded = false
 			holding1Player = 1
-	} else if (player1X < sword2X + swordRadius &&
-		player1X + playerWidth > sword2X &&
-		player1Y < sword2Y + swordRadius &&
+	} else if (player1X + playerXOffset < sword2X + swordRadius &&
+		player1X + playerWidth - playerXOffset > sword2X &&
+		player1Y + playerYOffset < sword2Y + swordRadius &&
 		player1Y + playerHeight > sword2Y && 
 		sword2Grounded && !player1HasSword) {
 			player1HasSword = true
 			sword2Grounded = false
 			holding2Player = 1
-	} else if (player2X < sword1X + swordRadius &&
-		player2X + playerWidth > sword1X &&
-		player2Y < sword1Y + swordRadius &&
+	} else if (player2X + playerXOffset < sword1X + swordRadius &&
+		player2X + playerWidth - playerXOffset > sword1X &&
+		player2Y + playerYOffset< sword1Y + swordRadius &&
 		player2Y + playerHeight > sword1Y && 
 		sword1Grounded && !player2HasSword) {
 			player2HasSword = true
 			sword1Grounded = false
 			holding1Player = 2
-	} else if (player2X < sword2X + swordRadius &&
-		player2X + playerWidth > sword2X &&
-		player2Y < sword2Y + swordRadius &&
+	} else if (player2X + playerXOffset < sword2X + swordRadius &&
+		player2X + playerWidth - playerXOffset > sword2X &&
+		player2Y + playerYOffset < sword2Y + swordRadius &&
 		player2Y + playerHeight > sword2Y && 
 		sword2Grounded && !player2HasSword) {
 			player2HasSword = true
 			sword2Grounded = false
 			holding2Player = 2
 	} // if player1 collides with sword1 and sword1 is being thrown, player1 loses
-	else if (player1X < sword1X + swordRadius &&
-		player1X + playerWidth > sword1X &&
-		player1Y < sword1Y + swordRadius &&
+	else if (player1X + playerXOffset < sword1X + swordRadius &&
+		player1X + playerWidth - playerXOffset > sword1X &&
+		player1Y + playerYOffset < sword1Y + swordRadius &&
 		player1Y + playerHeight > sword1Y && 
 		!sword1Grounded && holding1Player == 0 && sword1Thrower == 2) {
 			player1Alive = false
-	} else if (player1X < sword2X + swordRadius &&
-		player1X + playerWidth > sword2X &&
-		player1Y < sword2Y + swordRadius &&
+	} else if (player1X + playerXOffset < sword2X + swordRadius &&
+		player1X + playerWidth - playerXOffset > sword2X &&
+		player1Y + playerYOffset < sword2Y + swordRadius &&
 		player1Y + playerHeight > sword2Y && 
 		!sword2Grounded && holding2Player == 0 && sword2Thrower == 2) {
 			player1Alive = false
-	} else if (player2X < sword1X + swordRadius &&
-		player2X + playerWidth > sword1X &&
-		player2Y < sword1Y + swordRadius &&
+	} else if (player2X + playerXOffset < sword1X + swordRadius &&
+		player2X + playerWidth - playerXOffset > sword1X &&
+		player2Y + playerYOffset < sword1Y + swordRadius &&
 		player2Y + playerHeight > sword1Y && 
 		!sword1Grounded && holding1Player == 0 && sword1Thrower == 1) {
 			player2Alive = false
-	} else if (player2X < sword2X + swordRadius &&
-		player2X + playerWidth > sword2X &&
-		player2Y < sword2Y + swordRadius &&
+	} else if (player2X + playerXOffset < sword2X + swordRadius &&
+		player2X + playerWidth - playerXOffset > sword2X &&
+		player2Y + playerYOffset < sword2Y + swordRadius &&
 		player2Y + playerHeight > sword2Y && 
 		!sword2Grounded && holding2Player == 0 && sword2Thrower == 1) {
 			player2Alive = false
@@ -343,16 +344,16 @@ function detectCollision() {
 
 function detectPlatformCollisions() {
 	for (i=0; i<platforms.length; i++) {
-		if (player1X > platforms[i].x - playerWidth && player1X < platforms[i].x + platforms[i].w &&
-			player1Y + playerHeight > platforms[i].y && player1Y + playerHeight < platforms[i].y + platforms[i].h &&
+		if (player1X > platforms[i].x - playerWidth + playerXOffset && player1X < platforms[i].x + platforms[i].w - playerXOffset &&
+			player1Y + playerHeight > platforms[i].y-20 && player1Y + playerHeight < platforms[i].y + platforms[i].h &&
 			speed1Y >= 0) {
 			player1Y = platforms[i].y - playerHeight
 			speed1Y = 0
 			jumping1 = false
 			whichPlatformOn1 = i
 		}
-		if (player2X > platforms[i].x - playerWidth && player2X < platforms[i].x + platforms[i].w &&
-			player2Y + playerHeight > platforms[i].y && player2Y + playerHeight < platforms[i].y + platforms[i].h &&
+		if (player2X > platforms[i].x - playerWidth + playerXOffset && player2X < platforms[i].x + platforms[i].w - playerXOffset &&
+			player2Y + playerHeight > platforms[i].y-20 && player2Y + playerHeight < platforms[i].y + platforms[i].h &&
 			speed2Y >= 0) {
 			player2Y = platforms[i].y - playerHeight
 			speed2Y = 0
@@ -390,16 +391,16 @@ function detectPlatformCollisions() {
 
 function platformHandler() {
 	 if (whichPlatformOn1 != -1) {
-	 	if (player1X < platforms[whichPlatformOn1].x - playerWidth
-	 		|| player1X > platforms[whichPlatformOn1].x + platforms[whichPlatformOn1].w) {
+	 	if (player1X < platforms[whichPlatformOn1].x - playerWidth + playerXOffset
+	 		|| player1X > platforms[whichPlatformOn1].x + platforms[whichPlatformOn1].w - playerXOffset) {
 			whichPlatformOn1 = -1
 			jumping1 = true
 			speed1Y = 1
 		}
 	}
 	if (whichPlatformOn2 != -1) {
-	 	if (player2X < platforms[whichPlatformOn2].x - playerWidth
-	 		|| player2X > platforms[whichPlatformOn2].x + platforms[whichPlatformOn2].w) {
+	 	if (player2X < platforms[whichPlatformOn2].x - playerWidth + playerXOffset
+	 		|| player2X > platforms[whichPlatformOn2].x + platforms[whichPlatformOn2].w - playerXOffset) {
 			whichPlatformOn2 = -1
 			jumping2 = true
 			speed2Y = 1
@@ -418,7 +419,7 @@ function player1SwordHandler() {
 				sword1X = player1X + playerWidth-swordRadius/2
 				sword1 = swordLeftSpr
 			}
-			sword1Y = player1Y - swordRadius
+			sword1Y = player1Y - swordRadius + playerYOffset
 		} else {
 			if (speed1X > 0) {
 				sword2X = player1X-swordRadius/2
@@ -427,7 +428,7 @@ function player1SwordHandler() {
 				sword2X = player1X + playerWidth-swordRadius/2
 				sword2 = swordLeftSpr
 			}
-			sword2Y = player1Y - swordRadius
+			sword2Y = player1Y - swordRadius + playerYOffset
 		}
 		if (speed1X > 0) {
 			runAnim1++
@@ -469,7 +470,7 @@ function player2SwordHandler() {
 				sword1X = player2X + playerWidth-swordRadius/2
 				sword1 = swordLeftSpr
 			}
-			sword1Y = player2Y - swordRadius
+			sword1Y = player2Y - swordRadius + playerYOffset
 		} else {
 			if (speed2X > 0) {
 				sword2X = player2X-swordRadius/2
@@ -478,7 +479,7 @@ function player2SwordHandler() {
 				sword2X = player2X + playerWidth-swordRadius/2
 				sword2 = swordLeftSpr
 			}
-			sword2Y = player2Y - swordRadius
+			sword2Y = player2Y - swordRadius + playerYOffset
 		}
 		if (speed2X > 0) {
 			runAnim2++
@@ -626,7 +627,7 @@ function draw() {
 
 		player1X += speed1X
 		// flip direction when player1 reaches edge
-		if (player1X + speed1X < 0 || player1X + speed1X > canvas.width-playerWidth) {
+		if (player1X + playerXOffset + speed1X < 0 || player1X - playerXOffset + speed1X > canvas.width-playerWidth) {
 			speed1X = -speed1X
 		}
 
@@ -653,7 +654,7 @@ function draw() {
 		}
 
 		player2X += speed2X
-		if (player2X + speed2X < 0 || player2X + speed2X > canvas.width-playerWidth) {
+		if (player2X + playerXOffset + speed2X < 0 || player2X - playerXOffset + speed2X > canvas.width-playerWidth) {
 			speed2X = -speed2X
 		}
 		player2Y += speed2Y
