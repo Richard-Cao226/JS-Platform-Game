@@ -1,18 +1,30 @@
 var canvas = document.getElementById('myCanvas')
 var ctx = canvas.getContext('2d')
-var fps, fpsInterval, startTime, now, then, elapsed;
+var fps, fpsInterval, startTime, now, then, elapsed
+var jumpSound = new Audio("audio/jump.mp3")
+var throwSound = new Audio("audio/throw.mp3")
+var pickupSound = new Audio("audio/pickup.wav")
+var hitgroundSound = new Audio("audio/hitground.wav")
+var running1 = new Audio("audio/running.flac")
+var running2 = new Audio("audio/running.flac")
+running1.loop = true
+running2.loop = true
+var deathSound = new Audio("audio/death.wav")
+var started = false
+var gameEnd = false
+var deathSoundPlayed = false
 
 var gravity = 1
-var playerWidth = 50
-var playerHeight = 50
+var playerWidth = 75
+var playerHeight = 75
 var paused = false
-var jumpingXSpeed = 3.5
-var walkingXSpeed = 4
+var jumpingXSpeed = 5.5
+var walkingXSpeed = 6
 var throwPower = 13
 var jumpPower = 13
-var swordRadius = 30
-var playerXOffset = 16
-var playerYOffset = 8
+var swordRadius = 45
+var playerXOffset = 24
+var playerYOffset = 12
 
 var player1X = 50
 var player1Y = canvas.height - playerHeight
@@ -28,9 +40,9 @@ var holding1Player = 1
 var player1HasSword = true
 var sword1Grounded = false
 var swordRightSpr = new Image()
-swordRightSpr.src = "sprites/pirate_sword_right.png"
+swordRightSpr.src = "sprites/bone_thrown (3).png"
 var swordLeftSpr = new Image()
-swordLeftSpr.src = "sprites/pirate_sword_left.png"
+swordLeftSpr.src = "sprites/bone_thrown (3).png"
 var sword1 = swordRightSpr
 var player1Alive = true
 var sword1Thrower = 1
@@ -88,16 +100,28 @@ for (i=0; i<runWithBoneLeft.length; i++) {
 	runWithBoneRight[i].src = "sprites/running_with_bone_right ("+i.toString()+").png"
 }
 
+var deathAnim = 0
+var death = []
+var deathRight = []
+death.length = 10
+deathRight.length = 10
+for (i=0; i<death.length; i++) {
+	death[i] = new Image()
+	death[i].src = "sprites/death 0"+i.toString()+".png"
+	deathRight[i] = new Image()
+	deathRight[i].src = "sprites/death_right 0"+i.toString()+".png"
+}
+
 var player1 = runWithBoneRight[0]
 var player2 = runWithBoneLeft[0]
 
 var platforms = []
 var platformWidth = 100
 var platformHeight = 10
-platforms.length = 3
+platforms.length = 2
 platforms[0] = {x: 50, y: canvas.height-80, w: platformWidth, h: platformHeight}
 platforms[1] = {x: canvas.width-50-platformWidth, y: canvas.height-80, w: platformWidth, h: platformHeight}
-platforms[2] = {x: (canvas.width-platformWidth)/2, y: canvas.height-160, w: platformWidth, h: platformHeight}
+// platforms[2] = {x: (canvas.width-platformWidth)/2, y: canvas.height-160, w: platformWidth, h: platformHeight}
 
 function drawPlatforms() {
 	for (i=0; i<platforms.length; i++) {
@@ -135,6 +159,13 @@ function reset() {
 	player1Alive = true
 	sword1Thrower = 1
 	whichPlatformOn1 = -1
+	running1.currentTime = 0
+	running2.currentTime = 0
+	running1.play()
+	running2.play()
+	deathAnim = 0
+	gameEnd = false
+	deathSoundPlayed = false
 
 	player2X = canvas.width - player1X - playerWidth
 	player2Y = canvas.height - playerHeight
@@ -166,13 +197,15 @@ document.addEventListener("keyup", keyUpHandler)
 
 function keyDownHandler(e) {
 	// w pressed
-	if (e.keyCode == 87) {
+	if (e.keyCode == 87 && started && !paused && player1Alive) {
 		// if player1 is not jumping yet and doesn't have sword, then jump
 		// also make sure user has released w from previous jump to prevent user from holding down w
 		if (!jumping1 && wReleased && !player1HasSword) {
 			jumping1 = true
 			speed1Y = -jumpPower
 			wReleased = false
+			jumpSound.cloneNode().play()
+			running1.pause()
 		} // if player1 has a sword, throw it
 		else if (player1HasSword) {
 			player1HasSword = false
@@ -197,14 +230,17 @@ function keyDownHandler(e) {
 				holding2Player = 0
 				sword2Thrower = 1
 			}
+			throwSound.cloneNode().play()
 		}
 	} // up pressed
-	else if (e.keyCode == 38) {
+	else if (e.keyCode == 38 && started && !paused && player2Alive) {
 		if (!jumping2 && upReleased && !player2HasSword) {
 			jumping2 = true
 			speed2Y = -jumpPower
 			upReleased = false
 			whichPlatformOn2 = -1
+			jumpSound.cloneNode().play()
+			running2.pause()
 		} else if (player2HasSword) {
 			player2HasSword = false
 			throw1Anim = 0
@@ -229,6 +265,7 @@ function keyDownHandler(e) {
 				holding2Player = 0
 				sword2Thrower = 2
 			}
+			throwSound.cloneNode().play()
 		}
 	} // p pressed
 	else if (e.keyCode == 80) {
@@ -244,28 +281,41 @@ function keyDownHandler(e) {
 
 function keyUpHandler(e) {
 	// w released
-	if (e.keyCode == 87) {
+	if (e.keyCode == 87  && started && !paused) {
 		wReleased = true
-	} else if (e.keyCode == 38) {
+	} else if (e.keyCode == 38  && started && !paused) {
 		upReleased = true
 	}
 }
 
 function togglePause() {
-	if (!paused) {
+	if (!started) {
+		started = true
+		running1.play()
+		running2.play()
+		startAnimating(30)
+	} else if (!paused && player1Alive && player2Alive) {
+		running1.pause()
+		running2.pause()
 		paused = true
 	} else if (player1Alive && player2Alive) {
 		paused = false
+		running1.play()
+		running2.play()
 		requestAnimationFrame(draw)
 	}
 }
 
 function drawPlayer1() {
-	ctx.drawImage(player1,player1X,player1Y,playerWidth,playerHeight)
+	if (!gameEnd || player1Alive) {
+		ctx.drawImage(player1,player1X,player1Y,playerWidth,playerHeight)
+	}
 }
 
 function drawPlayer2() {
-	ctx.drawImage(player2,player2X,player2Y,playerWidth,playerHeight)
+	if (!gameEnd || player2Alive) {
+		ctx.drawImage(player2,player2X,player2Y,playerWidth,playerHeight)
+	}
 }
 
 function drawSword1() {
@@ -286,34 +336,38 @@ function detectCollision() {
 		player1X + playerWidth - playerXOffset > sword1X &&
 		player1Y + playerYOffset < sword1Y + swordRadius &&
 		player1Y + playerHeight > sword1Y && 
-		sword1Grounded && !player1HasSword) {
+		sword1Grounded && !player1HasSword && player1Alive) {
 			player1HasSword = true
 			sword1Grounded = false
 			holding1Player = 1
+			pickupSound.cloneNode().play()
 	} else if (player1X + playerXOffset < sword2X + swordRadius &&
 		player1X + playerWidth - playerXOffset > sword2X &&
 		player1Y + playerYOffset < sword2Y + swordRadius &&
 		player1Y + playerHeight > sword2Y && 
-		sword2Grounded && !player1HasSword) {
+		sword2Grounded && !player1HasSword && player1Alive) {
 			player1HasSword = true
 			sword2Grounded = false
 			holding2Player = 1
+			pickupSound.cloneNode().play()
 	} else if (player2X + playerXOffset < sword1X + swordRadius &&
 		player2X + playerWidth - playerXOffset > sword1X &&
 		player2Y + playerYOffset< sword1Y + swordRadius &&
 		player2Y + playerHeight > sword1Y && 
-		sword1Grounded && !player2HasSword) {
+		sword1Grounded && !player2HasSword && player2Alive) {
 			player2HasSword = true
 			sword1Grounded = false
 			holding1Player = 2
+			pickupSound.cloneNode().play()
 	} else if (player2X + playerXOffset < sword2X + swordRadius &&
 		player2X + playerWidth - playerXOffset > sword2X &&
 		player2Y + playerYOffset < sword2Y + swordRadius &&
 		player2Y + playerHeight > sword2Y && 
-		sword2Grounded && !player2HasSword) {
+		sword2Grounded && !player2HasSword && player2Alive) {
 			player2HasSword = true
 			sword2Grounded = false
 			holding2Player = 2
+			pickupSound.cloneNode().play()
 	} // if player1 collides with sword1 and sword1 is being thrown, player1 loses
 	else if (player1X + playerXOffset < sword1X + swordRadius &&
 		player1X + playerWidth - playerXOffset > sword1X &&
@@ -346,19 +400,21 @@ function detectPlatformCollisions() {
 	for (i=0; i<platforms.length; i++) {
 		if (player1X > platforms[i].x - playerWidth + playerXOffset && player1X < platforms[i].x + platforms[i].w - playerXOffset &&
 			player1Y + playerHeight > platforms[i].y-20 && player1Y + playerHeight < platforms[i].y + platforms[i].h &&
-			speed1Y >= 0) {
+			speed1Y >= 0 && player1Alive) {
 			player1Y = platforms[i].y - playerHeight
 			speed1Y = 0
 			jumping1 = false
 			whichPlatformOn1 = i
+			running1.play()
 		}
 		if (player2X > platforms[i].x - playerWidth + playerXOffset && player2X < platforms[i].x + platforms[i].w - playerXOffset &&
 			player2Y + playerHeight > platforms[i].y-20 && player2Y + playerHeight < platforms[i].y + platforms[i].h &&
-			speed2Y >= 0) {
+			speed2Y >= 0 && player2Alive) {
 			player2Y = platforms[i].y - playerHeight
 			speed2Y = 0
 			jumping2 = false
 			whichPlatformOn2 = i
+			running2.play()
 		}
 		if (sword1X > platforms[i].x - swordRadius && sword1X < platforms[i].x + platforms[i].w &&
 			sword1Y + swordRadius > platforms[i].y && sword1Y + swordRadius < platforms[i].y + platforms[i].h &&
@@ -372,6 +428,7 @@ function detectPlatformCollisions() {
 			}
 			sword1SpeedX = 0
 			sword1SpeedY = 0
+			hitgroundSound.cloneNode().play()
 		}
 		if (sword2X > platforms[i].x - swordRadius && sword2X < platforms[i].x + platforms[i].w &&
 			sword2Y + swordRadius > platforms[i].y && sword2Y + swordRadius < platforms[i].y + platforms[i].h &&
@@ -385,6 +442,7 @@ function detectPlatformCollisions() {
 			}
 			sword2SpeedX = 0
 			sword2SpeedY = 0
+			hitgroundSound.cloneNode().play()
 		}
 	}
 }
@@ -396,6 +454,7 @@ function platformHandler() {
 			whichPlatformOn1 = -1
 			jumping1 = true
 			speed1Y = 1
+			running1.pause()
 		}
 	}
 	if (whichPlatformOn2 != -1) {
@@ -404,6 +463,7 @@ function platformHandler() {
 			whichPlatformOn2 = -1
 			jumping2 = true
 			speed2Y = 1
+			running2.pause()
 		}
 	}
 }
@@ -542,6 +602,7 @@ function sword1Handler() {
 		}
 		sword1SpeedX = 0
 		sword1SpeedY = 0
+		hitgroundSound.cloneNode().play()
 	}
 }
 
@@ -573,27 +634,73 @@ function sword2Handler() {
 		}
 		sword2SpeedX = 0
 		sword2SpeedY = 0
+		hitgroundSound.cloneNode().play()
 	}
 }
 
 function checkWin() {
 	if (!player1Alive) {
-		paused = true
-		ctx.font = "30px Verdana"
+		running1.pause()
+		if (!deathSoundPlayed) {
+			deathSound.cloneNode().play()
+			deathSoundPlayed = true
+		}
+		if (speed1X < 0) {
+			player1 = death[deathAnim]
+			deathAnim++
+			if (deathAnim == death.length) {
+				gameEnd = true
+			}
+		} else {
+			player1 = deathRight[deathAnim]
+			deathAnim++
+			if (deathAnim == deathRight.length) {
+				gameEnd = true
+			}
+		}
+		if (gameEnd) {
+			ctx.font = "50px Verdana"
+			ctx.textAlign = "center"
+			ctx.fillStyle = "red"
+			ctx.fillText("Player 2 Wins!", canvas.width/2, canvas.height/2)
+			ctx.font = "20px Verdana"
+			ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
+		}
+	} else if (!player2Alive) {
+		running2.pause()
+		if (!deathSoundPlayed) {
+			deathSound.cloneNode().play()
+			deathSoundPlayed = true
+		}
+		if (speed2X < 0) {
+			player2 = death[deathAnim]
+			deathAnim++
+			if (deathAnim == death.length) {
+				gameEnd = true
+			}
+		} else {
+			player2 = deathRight[deathAnim]
+			deathAnim++
+			if (deathAnim == death.length) {
+				gameEnd = true
+			}
+		}
+	}
+	if (gameEnd) {
+		ctx.font = "50px Verdana"
 		ctx.textAlign = "center"
 		ctx.fillStyle = "red"
 		ctx.fillText("Player 2 Wins!", canvas.width/2, canvas.height/2)
 		ctx.font = "20px Verdana"
 		ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
-	} else if (!player2Alive) {
-		paused = true
-		ctx.font = "30px Verdana"
-		ctx.textAlign = "center"
-		ctx.fillStyle = "blue"
-		ctx.fillText("Player 1 Wins!", canvas.width/2, canvas.height/2)
-		ctx.font = "20px Verdana"
-		ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
 	}
+}
+
+function drawStart() {
+	ctx.font = "40px Verdana"
+	ctx.textAlign = "center"
+	ctx.fillStyle = "black"
+	ctx.fillText("Press p to start game", canvas.width/2, canvas.height/2)
 }
 
 function draw() {
@@ -627,7 +734,7 @@ function draw() {
 
 		player1X += speed1X
 		// flip direction when player1 reaches edge
-		if (player1X + playerXOffset + speed1X < 0 || player1X - playerXOffset + speed1X > canvas.width-playerWidth) {
+		if (player1X + speed1X < 0 || player1X + speed1X > canvas.width-playerWidth) {
 			speed1X = -speed1X
 		}
 
@@ -651,10 +758,11 @@ function draw() {
 			} else {
 				speed1X = -walkingXSpeed
 			}
+			running1.play()
 		}
 
 		player2X += speed2X
-		if (player2X + playerXOffset + speed2X < 0 || player2X - playerXOffset + speed2X > canvas.width-playerWidth) {
+		if (player2X + speed2X < 0 || player2X + speed2X > canvas.width-playerWidth) {
 			speed2X = -speed2X
 		}
 		player2Y += speed2Y
@@ -675,10 +783,11 @@ function draw() {
 			} else {
 				speed2X = -walkingXSpeed
 			}
+			running2.play()
 		}
 
     }
 
 }
 
-startAnimating(30)
+drawStart()
