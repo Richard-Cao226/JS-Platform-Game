@@ -21,6 +21,7 @@ var paused = false
 var jumpingXSpeed = 5.5
 var walkingXSpeed = 6
 var throwPower = 13
+var throwXSpeedFactor = 1.8
 var jumpPower = 13
 var swordRadius = 45
 var playerXOffset = 24
@@ -231,21 +232,21 @@ function keyDownHandler(e) {
 			if (holding1Player == 1) {
 				throw1Anim = 0
 				if (speed1X > 0) {
-					sword1SpeedX = throwPower
+					sword1SpeedX = throwPower * Math.cos(toRadians(throwAngle1)) * throwXSpeedFactor
 				} else {
-					sword1SpeedX = -throwPower
+					sword1SpeedX = -(throwPower * Math.cos(toRadians(throwAngle1))) * throwXSpeedFactor
 				}
-				sword1SpeedY = -throwPower
+				sword1SpeedY = -(throwPower * Math.sin(toRadians(throwAngle1)))
 				holding1Player = 0
 				sword1Thrower = 1
 			} else {
 				throw2Anim = 0
 				if (speed1X > 0) {
-					sword2SpeedX = throwPower
+					sword2SpeedX = throwPower * Math.cos(toRadians(throwAngle1)) * throwXSpeedFactor
 				} else {
-					sword2SpeedX = -throwPower
+					sword2SpeedX = -(throwPower * Math.cos(toRadians(throwAngle1))) * throwXSpeedFactor
 				}
-				sword2SpeedY = -throwPower
+				sword2SpeedY = -(throwPower * Math.sin(toRadians(throwAngle1)))
 				holding2Player = 0
 				sword2Thrower = 1
 			}
@@ -266,9 +267,9 @@ function keyDownHandler(e) {
 			if (holding1Player == 2) {
 				throw1Anim = 0
 				if (speed2X > 0) {
-					sword1SpeedX = throwPower
+					sword1SpeedX = throwPower * Math.cos(toRadians(throwAngle2)) * throwXSpeedFactor
 				} else {
-					sword1SpeedX = -throwPower
+					sword1SpeedX = -(throwPower * Math.cos(toRadians(throwAngle2))) * throwXSpeedFactor
 				}
 				sword1SpeedY = -throwPower
 				holding1Player = 0
@@ -276,11 +277,11 @@ function keyDownHandler(e) {
 			} else {
 				throw2Anim = 0
 				if (speed2X > 0) {
-					sword2SpeedX = throwPower
+					sword2SpeedX = throwPower * Math.cos(toRadians(throwAngle2)) * throwXSpeedFactor
 				} else {
-					sword2SpeedX = -throwPower
+					sword2SpeedX = -(throwPower * Math.cos(toRadians(throwAngle2))) * throwXSpeedFactor
 				}
-				sword2SpeedY = -throwPower
+				sword2SpeedY = -(throwPower * Math.sin(toRadians(throwAngle2)))
 				holding2Player = 0
 				sword2Thrower = 2
 			}
@@ -350,7 +351,7 @@ function drawSword2() {
 }
 
 function drawCrossHair1() {
-	if (holding1Player == 1 || holding2Player == 1) {
+	if ((holding1Player == 1 || holding2Player == 1) && player1Alive) {
 		if (speed1X > 0) {
 			var x = player1X + playerWidth/2 - crossHairSize/2 + crossHairDistance * Math.cos(toRadians(throwAngle1))
 			var y = player1Y + playerYOffset - crossHairSize/2 - crossHairDistance * Math.sin(toRadians(throwAngle1))
@@ -364,7 +365,7 @@ function drawCrossHair1() {
 }
 
 function drawCrossHair2() {
-	if (holding1Player == 2 || holding2Player == 2) {
+	if ((holding1Player == 2 || holding2Player == 2) && player2Alive) {
 		if (speed2X > 0) {
 			var x = player2X + playerWidth/2 - crossHairSize/2 + crossHairDistance * Math.cos(toRadians(throwAngle2))
 			var y = player2Y + playerYOffset - crossHairSize/2 - crossHairDistance * Math.sin(toRadians(throwAngle2))
