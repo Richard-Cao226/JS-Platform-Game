@@ -25,6 +25,13 @@ var jumpPower = 13
 var swordRadius = 45
 var playerXOffset = 24
 var playerYOffset = 12
+var maxAngle = 120
+var minAngle = -20
+var crossHairDistance = 40
+var crossHairSize = 20
+var crossHair = new Image()
+crossHair.src = "sprites/crosshair.png"
+
 
 var player1X = 50
 var player1Y = canvas.height - playerHeight
@@ -47,6 +54,8 @@ var sword1 = swordRightSpr
 var player1Alive = true
 var sword1Thrower = 1
 var whichPlatformOn1 = -1
+var throwAngle1 = 45
+var angleChange1 = 10
 
 var player2X = canvas.width - player1X - playerWidth
 var player2Y = canvas.height - playerHeight
@@ -65,6 +74,8 @@ var sword2 = swordLeftSpr
 var player2Alive = true
 var sword2Thrower = 2
 var whichPlatformOn2 = -1
+var throwAngle2 = 45
+var angleChange2 = 10
 
 var swordThrownRightSprSh = []
 swordThrownRightSprSh.length = 4
@@ -133,6 +144,10 @@ function drawPlatforms() {
 	}
 }
 
+function toRadians (angle) {
+  return angle * (Math.PI / 180);
+}
+
 function startAnimating(fps) {
     fpsInterval = 1000 / fps;
     then = Date.now();
@@ -166,6 +181,8 @@ function reset() {
 	deathAnim = 0
 	gameEnd = false
 	deathSoundPlayed = false
+	throwAngle1 = 45
+	angleChange1 = 10
 
 	player2X = canvas.width - player1X - playerWidth
 	player2Y = canvas.height - playerHeight
@@ -190,6 +207,8 @@ function reset() {
 	runAnim2 = 0
 	player1 = runWithBoneRight[0]
 	player2 = runWithBoneLeft[0]
+	throwAngle2 = 45
+	angleChange2 = 10
 }
 
 document.addEventListener("keydown", keyDownHandler)
@@ -328,6 +347,48 @@ function drawSword2() {
 	if (holding2Player == 0) {
 		ctx.drawImage(sword2,sword2X,sword2Y,swordRadius,swordRadius)
 	}
+}
+
+function drawCrossHair1() {
+	if (holding1Player == 1 || holding2Player == 1) {
+		if (speed1X > 0) {
+			var x = player1X + playerWidth/2 - crossHairSize/2 + crossHairDistance * Math.cos(toRadians(throwAngle1))
+			var y = player1Y + playerYOffset - crossHairSize/2 - crossHairDistance * Math.sin(toRadians(throwAngle1))
+			ctx.drawImage(crossHair,x,y,crossHairSize,crossHairSize)
+		} else {
+			var x = player1X + playerWidth/2 - crossHairSize/2 - crossHairDistance * Math.cos(toRadians(throwAngle1))
+			var y = player1Y + playerYOffset - crossHairSize/2 - crossHairDistance * Math.sin(toRadians(throwAngle1))
+			ctx.drawImage(crossHair,x,y,crossHairSize,crossHairSize)
+		}
+	}
+}
+
+function drawCrossHair2() {
+	if (holding1Player == 2 || holding2Player == 2) {
+		if (speed2X > 0) {
+			var x = player2X + playerWidth/2 - crossHairSize/2 + crossHairDistance * Math.cos(toRadians(throwAngle2))
+			var y = player2Y + playerYOffset - crossHairSize/2 - crossHairDistance * Math.sin(toRadians(throwAngle2))
+			ctx.drawImage(crossHair,x,y,crossHairSize,crossHairSize)
+		} else {
+			var x = player2X + playerWidth/2 - crossHairSize/2 - crossHairDistance * Math.cos(toRadians(throwAngle2))
+			var y = player2Y + playerYOffset - crossHairSize/2 - crossHairDistance * Math.sin(toRadians(throwAngle2))
+			ctx.drawImage(crossHair,x,y,crossHairSize,crossHairSize)
+		}
+	}
+}
+
+function updateThrowAngle1() {
+	if (throwAngle1 + angleChange1 > maxAngle || throwAngle1 + angleChange1 < minAngle) {
+		angleChange1 = -angleChange1
+	}
+	throwAngle1 += angleChange1
+}
+
+function updateThrowAngle2() {
+	if (throwAngle2 + angleChange2 > maxAngle || throwAngle2 + angleChange2 < minAngle) {
+		angleChange2 = -angleChange2
+	}
+	throwAngle2 += angleChange2
 }
 
 function detectCollision() {
@@ -473,19 +534,19 @@ function player1SwordHandler() {
 	if (player1HasSword) {
 		if (holding1Player == 1) {
 			if (speed1X > 0) {
-				sword1X = player1X-swordRadius/2
+				sword1X = player1X + (playerWidth - swordRadius)/2
 				sword1 = swordRightSpr
 			} else {
-				sword1X = player1X + playerWidth-swordRadius/2
+				sword1X = player1X + (playerWidth-swordRadius)/2
 				sword1 = swordLeftSpr
 			}
 			sword1Y = player1Y - swordRadius + playerYOffset
 		} else {
 			if (speed1X > 0) {
-				sword2X = player1X-swordRadius/2
+				sword2X = player1X + (playerWidth - swordRadius)/2
 				sword2 = swordRightSpr
 			} else {
-				sword2X = player1X + playerWidth-swordRadius/2
+				sword2X = player1X + (playerWidth - swordRadius)/2
 				sword2 = swordLeftSpr
 			}
 			sword2Y = player1Y - swordRadius + playerYOffset
@@ -524,19 +585,19 @@ function player2SwordHandler() {
 	if (player2HasSword) {
 		if (holding1Player == 2) {
 			if (speed2X > 0) {
-				sword1X = player2X-swordRadius/2
+				sword1X = player2X + (playerWidth - swordRadius)/2
 				sword1 = swordRightSpr
 			} else {
-				sword1X = player2X + playerWidth-swordRadius/2
+				sword1X = player2X + (playerWidth - swordRadius)/2
 				sword1 = swordLeftSpr
 			}
 			sword1Y = player2Y - swordRadius + playerYOffset
 		} else {
 			if (speed2X > 0) {
-				sword2X = player2X-swordRadius/2
+				sword2X = player2X + (playerWidth - swordRadius)/2
 				sword2 = swordRightSpr
 			} else {
-				sword2X = player2X + playerWidth-swordRadius/2
+				sword2X = player2X + (playerWidth - swordRadius)/2
 				sword2 = swordLeftSpr
 			}
 			sword2Y = player2Y - swordRadius + playerYOffset
@@ -726,10 +787,16 @@ function draw() {
 		sword1Handler()
 		drawSword2()
 		sword2Handler()
+		drawCrossHair1()
+		drawCrossHair2()
+		updateThrowAngle1()
+		updateThrowAngle2()
 		drawPlatforms()
 		detectCollision()
 		detectPlatformCollisions()
 		platformHandler()
+
+
 		
 
 		player1X += speed1X
