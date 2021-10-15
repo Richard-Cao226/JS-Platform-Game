@@ -1,6 +1,6 @@
 # JS-Sword-Throw-Game
 
-![image](https://user-images.githubusercontent.com/44596884/137526897-41b8677e-7b80-4ace-baf8-252e8c6ae3ed.png)
+![image](https://user-images.githubusercontent.com/44596884/137528300-2c2dd345-06e5-49b3-8fbf-ef7c9e6ba372.png)
 
 ## Controls
 w/up : Throw or Jump  
