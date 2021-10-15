@@ -1,7 +1,7 @@
 # JS-Sword-Throw-Game
 
 ## Controls
-w/up : Throw or Jump
+w/up : Throw or Jump  
 s/down : Change Direction
 
 ## Development Checkpoints
