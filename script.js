@@ -13,6 +13,9 @@ var deathSound = new Audio("audio/death.wav")
 var started = false
 var gameEnd = false
 var deathSoundPlayed = false
+var ground = new Image()
+ground.src = "sprites/ground.png"
+var groundHeight = 52
 
 var gravity = 1
 var playerWidth = 75
@@ -35,7 +38,7 @@ crossHair.src = "sprites/crosshair.png"
 
 
 var player1X = 50
-var player1Y = canvas.height - playerHeight
+var player1Y = canvas.height - playerHeight - groundHeight
 var speed1X = walkingXSpeed
 var speed1Y = 0
 var jumping1 = false
@@ -56,10 +59,10 @@ var player1Alive = true
 var sword1Thrower = 1
 var whichPlatformOn1 = -1
 var throwAngle1 = 45
-var angleChange1 = 10
+var angleChange1 = 5
 
 var player2X = canvas.width - player1X - playerWidth
-var player2Y = canvas.height - playerHeight
+var player2Y = canvas.height - playerHeight - groundHeight
 var speed2X = -walkingXSpeed
 var speed2Y = 0
 var jumping2 = false
@@ -76,7 +79,7 @@ var player2Alive = true
 var sword2Thrower = 2
 var whichPlatformOn2 = -1
 var throwAngle2 = 45
-var angleChange2 = 10
+var angleChange2 = 5
 
 var swordThrownRightSprSh = []
 swordThrownRightSprSh.length = 4
@@ -115,8 +118,8 @@ for (i=0; i<runWithBoneLeft.length; i++) {
 var deathAnim = 0
 var death = []
 var deathRight = []
-death.length = 10
-deathRight.length = 10
+death.length = 4
+deathRight.length = 4
 for (i=0; i<death.length; i++) {
 	death[i] = new Image()
 	death[i].src = "sprites/death 0"+i.toString()+".png"
@@ -127,22 +130,35 @@ for (i=0; i<death.length; i++) {
 var player1 = runWithBoneRight[0]
 var player2 = runWithBoneLeft[0]
 
+var floatingPlatform = new Image()
+floatingPlatform.src = "sprites/floating_platform.png"
+var groundPlatform = new Image()
+groundPlatform.src = "sprites/ground_platform.png"
 var platforms = []
-var platformWidth = 100
-var platformHeight = 10
-platforms.length = 2
-platforms[0] = {x: 50, y: canvas.height-80, w: platformWidth, h: platformHeight}
-platforms[1] = {x: canvas.width-50-platformWidth, y: canvas.height-80, w: platformWidth, h: platformHeight}
-// platforms[2] = {x: (canvas.width-platformWidth)/2, y: canvas.height-160, w: platformWidth, h: platformHeight}
+var floatingPlatformWidth = 150
+var floatingPlatformHeight = 20
+var groundPlatformWidth = 170
+var groundPlatformHeight = 198
+
+platforms.length = 9
+platforms[0] = {img: groundPlatform, x: -30, y: 200, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms[1] = {img: groundPlatform, x: 70, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms[2] = {img: groundPlatform, x: 170, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms[3] = {img: groundPlatform, x: canvas.width+30-groundPlatformWidth, y: 200, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms[4] = {img: groundPlatform, x: canvas.width-70-groundPlatformWidth, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms[5] = {img: groundPlatform, x: canvas.width-170-groundPlatformWidth, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms[6] = {img: floatingPlatform, x: (canvas.width-floatingPlatformWidth)/2, y: 210, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms[7] = {img: floatingPlatform, x: 120, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms[8] = {img: floatingPlatform, x: canvas.width-120-floatingPlatformWidth, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
 
 function drawPlatforms() {
 	for (i=0; i<platforms.length; i++) {
-		ctx.beginPath()
-		ctx.rect(platforms[i].x, platforms[i].y, platforms[i].w, platforms[i].h)
-		ctx.fillStyle = "#682404"
-		ctx.fill()
-		ctx.closePath()
+		ctx.drawImage(platforms[i].img, platforms[i].x, platforms[i].y, platforms[i].w, platforms[i].h)
 	}
+}
+
+function drawGround() {
+	ctx.drawImage(ground, 0, canvas.height - 52, canvas.width, 52)
 }
 
 function toRadians (angle) {
@@ -402,6 +418,7 @@ function detectCollision() {
 			player1HasSword = true
 			sword1Grounded = false
 			holding1Player = 1
+			throwAngle1 = 45
 			pickupSound.cloneNode().play()
 	} else if (player1X + playerXOffset < sword2X + swordRadius &&
 		player1X + playerWidth - playerXOffset > sword2X &&
@@ -411,6 +428,7 @@ function detectCollision() {
 			player1HasSword = true
 			sword2Grounded = false
 			holding2Player = 1
+			throwAngle1 = 45
 			pickupSound.cloneNode().play()
 	} else if (player2X + playerXOffset < sword1X + swordRadius &&
 		player2X + playerWidth - playerXOffset > sword1X &&
@@ -420,6 +438,7 @@ function detectCollision() {
 			player2HasSword = true
 			sword1Grounded = false
 			holding1Player = 2
+			throwAngle2 = 45
 			pickupSound.cloneNode().play()
 	} else if (player2X + playerXOffset < sword2X + swordRadius &&
 		player2X + playerWidth - playerXOffset > sword2X &&
@@ -429,6 +448,7 @@ function detectCollision() {
 			player2HasSword = true
 			sword2Grounded = false
 			holding2Player = 2
+			throwAngle2 = 45
 			pickupSound.cloneNode().play()
 	} // if player1 collides with sword1 and sword1 is being thrown, player1 loses
 	else if (player1X + playerXOffset < sword1X + swordRadius &&
@@ -461,7 +481,7 @@ function detectCollision() {
 function detectPlatformCollisions() {
 	for (i=0; i<platforms.length; i++) {
 		if (player1X > platforms[i].x - playerWidth + playerXOffset && player1X < platforms[i].x + platforms[i].w - playerXOffset &&
-			player1Y + playerHeight > platforms[i].y-20 && player1Y + playerHeight < platforms[i].y + platforms[i].h &&
+			player1Y + playerHeight > platforms[i].y-20 && player1Y + playerHeight < platforms[i].y &&
 			speed1Y >= 0 && player1Alive) {
 			player1Y = platforms[i].y - playerHeight
 			speed1Y = 0
@@ -470,7 +490,7 @@ function detectPlatformCollisions() {
 			running1.play()
 		}
 		if (player2X > platforms[i].x - playerWidth + playerXOffset && player2X < platforms[i].x + platforms[i].w - playerXOffset &&
-			player2Y + playerHeight > platforms[i].y-20 && player2Y + playerHeight < platforms[i].y + platforms[i].h &&
+			player2Y + playerHeight > platforms[i].y-20 && player2Y + playerHeight < platforms[i].y &&
 			speed2Y >= 0 && player2Alive) {
 			player2Y = platforms[i].y - playerHeight
 			speed2Y = 0
@@ -478,8 +498,8 @@ function detectPlatformCollisions() {
 			whichPlatformOn2 = i
 			running2.play()
 		}
-		if (sword1X > platforms[i].x - swordRadius && sword1X < platforms[i].x + platforms[i].w &&
-			sword1Y + swordRadius > platforms[i].y && sword1Y + swordRadius < platforms[i].y + platforms[i].h &&
+		if (sword1X > platforms[i].x && sword1X + swordRadius < platforms[i].x + platforms[i].w &&
+			sword1Y + swordRadius > platforms[i].y-20 && sword1Y + swordRadius < platforms[i].y &&
 			sword1SpeedY > 0) {
 			sword1Grounded = true
 			sword1Y = platforms[i].y - swordRadius
@@ -492,8 +512,8 @@ function detectPlatformCollisions() {
 			sword1SpeedY = 0
 			hitgroundSound.cloneNode().play()
 		}
-		if (sword2X > platforms[i].x - swordRadius && sword2X < platforms[i].x + platforms[i].w &&
-			sword2Y + swordRadius > platforms[i].y && sword2Y + swordRadius < platforms[i].y + platforms[i].h &&
+		if (sword2X > platforms[i].x && sword2X + swordRadius < platforms[i].x + platforms[i].w &&
+			sword2Y + swordRadius > platforms[i].y-20 && sword2Y + swordRadius < platforms[i].y &&
 			sword2SpeedY > 0) {
 			sword2Grounded = true
 			sword2Y = platforms[i].y - swordRadius
@@ -510,15 +530,6 @@ function detectPlatformCollisions() {
 }
 
 function platformHandler() {
-	 if (whichPlatformOn1 != -1) {
-	 	if (player1X < platforms[whichPlatformOn1].x - playerWidth + playerXOffset
-	 		|| player1X > platforms[whichPlatformOn1].x + platforms[whichPlatformOn1].w - playerXOffset) {
-			whichPlatformOn1 = -1
-			jumping1 = true
-			speed1Y = 1
-			running1.pause()
-		}
-	}
 	if (whichPlatformOn2 != -1) {
 	 	if (player2X < platforms[whichPlatformOn2].x - playerWidth + playerXOffset
 	 		|| player2X > platforms[whichPlatformOn2].x + platforms[whichPlatformOn2].w - playerXOffset) {
@@ -528,6 +539,16 @@ function platformHandler() {
 			running2.pause()
 		}
 	}
+	 if (whichPlatformOn1 != -1) {
+	 	if (player1X < platforms[whichPlatformOn1].x - playerWidth + playerXOffset
+	 		|| player1X > platforms[whichPlatformOn1].x + platforms[whichPlatformOn1].w - playerXOffset) {
+			whichPlatformOn1 = -1
+			jumping1 = true
+			speed1Y = 1
+			running1.pause()
+		}
+	}
+	
 }
 
 function player1SwordHandler() {
@@ -654,9 +675,9 @@ function sword1Handler() {
 		sword1 = swordLeftSpr
 	}
 	// if sword1 reaches the ground, stop its movement
-	if (sword1Y+sword1SpeedY > canvas.height - swordRadius) {
+	if (sword1Y+sword1SpeedY > canvas.height - swordRadius - groundHeight) {
 		sword1Grounded = true
-		sword1Y = canvas.height - swordRadius
+		sword1Y = canvas.height - swordRadius - groundHeight
 		if (sword1SpeedX > 0) {
 			sword1 = swordGroundedRightSpr
 		} else {
@@ -686,9 +707,9 @@ function sword2Handler() {
 		sword2SpeedX = -sword2SpeedX
 		sword2 = swordLeftSpr
 	}
-	if (sword2Y+sword2SpeedY > canvas.height - swordRadius) {
+	if (sword2Y+sword2SpeedY > canvas.height - swordRadius - groundHeight) {
 		sword2Grounded = true
-		sword2Y = canvas.height - swordRadius
+		sword2Y = canvas.height - swordRadius - groundHeight
 		if (sword2SpeedX > 0) {
 			sword2 = swordGroundedRightSpr
 		} else {
@@ -720,14 +741,7 @@ function checkWin() {
 				gameEnd = true
 			}
 		}
-		if (gameEnd) {
-			ctx.font = "50px Verdana"
-			ctx.textAlign = "center"
-			ctx.fillStyle = "red"
-			ctx.fillText("Player 2 Wins!", canvas.width/2, canvas.height/2)
-			ctx.font = "20px Verdana"
-			ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
-		}
+		
 	} else if (!player2Alive) {
 		running2.pause()
 		if (!deathSoundPlayed) {
@@ -748,14 +762,7 @@ function checkWin() {
 			}
 		}
 	}
-	if (gameEnd) {
-		ctx.font = "50px Verdana"
-		ctx.textAlign = "center"
-		ctx.fillStyle = "red"
-		ctx.fillText("Player 2 Wins!", canvas.width/2, canvas.height/2)
-		ctx.font = "20px Verdana"
-		ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
-	}
+	
 }
 
 function drawStart() {
@@ -779,25 +786,43 @@ function draw() {
 
         ctx.clearRect(0,0,canvas.width,canvas.height)
 	
+
 		checkWin()
-		drawPlayer1()
-		player1SwordHandler()
-		drawPlayer2()
-		player2SwordHandler()
+		drawPlatforms()
+		drawGround()
 		drawSword1()
 		sword1Handler()
 		drawSword2()
 		sword2Handler()
+		drawPlayer1()
+		player1SwordHandler()
+		drawPlayer2()
+		player2SwordHandler()
 		drawCrossHair1()
 		drawCrossHair2()
 		updateThrowAngle1()
 		updateThrowAngle2()
-		drawPlatforms()
 		detectCollision()
 		detectPlatformCollisions()
 		platformHandler()
 
+		if (gameEnd && player1Alive) {
+			ctx.font = "50px Verdana"
+			ctx.textAlign = "center"
+			ctx.fillStyle = "blue"
+			ctx.fillText("Player 1 Wins!", canvas.width/2, canvas.height/2)
+			ctx.font = "20px Verdana"
+			ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
+		}
 
+		if (gameEnd && player2Alive) {
+		ctx.font = "50px Verdana"
+		ctx.textAlign = "center"
+		ctx.fillStyle = "red"
+		ctx.fillText("Player 2 Wins!", canvas.width/2, canvas.height/2)
+		ctx.font = "20px Verdana"
+		ctx.fillText("Press c to continue...", canvas.width/2, canvas.height/2+40)
+	}
 		
 
 		player1X += speed1X
@@ -817,8 +842,8 @@ function draw() {
 			speed1Y += gravity
 		}
 		// when player1 reaches ground, stop jumping
-		if (player1Y + speed1Y > canvas.height - playerHeight) {
-			player1Y = canvas.height - playerHeight
+		if (player1Y + speed1Y > canvas.height - playerHeight - groundHeight) {
+			player1Y = canvas.height - playerHeight - groundHeight
 			jumping1 = false
 			speed1Y = 0
 			if (speed1X > 0) {
@@ -842,8 +867,8 @@ function draw() {
 			}
 			speed2Y += gravity
 		}
-		if (player2Y + speed2Y > canvas.height - playerHeight) {
-			player2Y = canvas.height - playerHeight
+		if (player2Y + speed2Y > canvas.height - playerHeight - groundHeight) {
+			player2Y = canvas.height - playerHeight - groundHeight
 			jumping2 = false
 			speed2Y = 0
 			if (speed2X > 0) {
