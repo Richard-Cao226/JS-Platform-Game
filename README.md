@@ -7,7 +7,7 @@ s/down : Change Direction
 ## Development Checkpoints
 ![136494091-0a3877d8-d379-4482-80ea-362e6330d051 (1)](https://user-images.githubusercontent.com/44596884/137527684-b9b406ca-5846-406b-875f-f002ad04574b.png)
 
-![image](https://user-images.githubusercontent.com/44596884/136664051-1eabdb8f-6124-470c-a2fb-f0c5e38b9e80.png)
+![136664051-1eabdb8f-6124-470c-a2fb-f0c5e38b9e80 (1)](https://user-images.githubusercontent.com/44596884/137527894-91290cff-f349-4e32-9654-0a55d550c879.png)
 
 ![Screenshot 2021-10-10 144642](https://user-images.githubusercontent.com/44596884/136714590-372d48ea-141a-4854-aca6-b651c75effab.png)
 
