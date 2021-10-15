@@ -1,4 +1,5 @@
-# JS-Sword-Throw-Game
+# JS-Platform-Game
+A 2-player platformer where players try hitting each other with projectiles.
 
 ![image](https://user-images.githubusercontent.com/44596884/137528300-2c2dd345-06e5-49b3-8fbf-ef7c9e6ba372.png)
 
