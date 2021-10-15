@@ -1,5 +1,7 @@
 # JS-Sword-Throw-Game
 
+![image](https://user-images.githubusercontent.com/44596884/137526897-41b8677e-7b80-4ace-baf8-252e8c6ae3ed.png)
+
 ## Controls
 w/up : Throw or Jump  
 s/down : Change Direction
