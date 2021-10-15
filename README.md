@@ -5,7 +5,7 @@ w/up : Throw or Jump
 s/down : Change Direction
 
 ## Development Checkpoints
-![image](https://user-images.githubusercontent.com/44596884/136494091-0a3877d8-d379-4482-80ea-362e6330d051.png)
+![136494091-0a3877d8-d379-4482-80ea-362e6330d051 (1)](https://user-images.githubusercontent.com/44596884/137527684-b9b406ca-5846-406b-875f-f002ad04574b.png)
 
 ![image](https://user-images.githubusercontent.com/44596884/136664051-1eabdb8f-6124-470c-a2fb-f0c5e38b9e80.png)
 
