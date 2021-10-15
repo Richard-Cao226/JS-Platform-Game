@@ -10,11 +10,16 @@ h1 {
 }
 
 h2 {
-	text-align:  center;
+	text-align: center;
+}
+
+p {
+	text-align: center;
 }
 
 #myCanvas {
 	background-image: url("sprites/cavebg.jpg");
 	display: block;
 	margin: 0 auto;
+	margin-top: 30px;
 }
