@@ -16,7 +16,7 @@ var deathSoundPlayed = false
 var ground = new Image()
 ground.src = "sprites/ground.png"
 var groundHeight = 52
-var fps = 60
+var fps = 30
 
 var gravity = 1
 var playerWidth = 75
@@ -362,7 +362,7 @@ function keyDownHandler(e) {
 	else if (e.keyCode == 67) {
 		if (!player1Alive || !player2Alive) {
 			reset()
-			startAnimating(60)
+			startAnimating(fps)
 		}
 	}
 }
@@ -381,7 +381,7 @@ function togglePause() {
 		started = true
 		running1.play()
 		running2.play()
-		startAnimating(60)
+		startAnimating(fps)
 	} else if (!paused && player1Alive && player2Alive) {
 		running1.pause()
 		running2.pause()
