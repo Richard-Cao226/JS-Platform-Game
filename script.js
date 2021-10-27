@@ -1,3 +1,7 @@
+// increase y of platforms
+// change bone landing sprite/animation done
+// fixed fps
+
 var canvas = document.getElementById('myCanvas')
 var ctx = canvas.getContext('2d')
 var fps, fpsInterval, startTime, now, then, elapsed
@@ -16,26 +20,28 @@ var deathSoundPlayed = false
 var ground = new Image()
 ground.src = "sprites/ground.png"
 var groundHeight = 52
-var fps = 60
+var fps = 30
 
-var gravity = 1
+var gravity = 1.5
 var playerWidth = 75
 var playerHeight = 75
 var paused = false
-var jumpingXSpeed = 5.5
-var walkingXSpeed = 6
-var throwPower = 13
-var throwXSpeedFactor = 1.8
-var jumpPower = 13
+var jumpingXSpeed = 6
+var walkingXSpeed = 8
+var throwPower = 25
+var throwXSpeedFactor = 2
+var throwYSpeedFactor = 0.9
+var jumpPower = 16
 var swordRadius = 45
 var playerXOffset = 24
 var playerYOffset = 12
 var maxAngle = 120
-var minAngle = -20
+var minAngle = -10
 var crossHairDistance = 40
 var crossHairSize = 20
 var crossHair = new Image()
 crossHair.src = "sprites/crosshair.png"
+var angleDiff = 10
 
 
 var player1X = 50
@@ -60,7 +66,8 @@ var player1Alive = true
 var sword1Thrower = 1
 var whichPlatformOn1 = -1
 var throwAngle1 = 45
-var angleChange1 = 5
+var angleChange1 = angleDiff
+var sword1FacingRight = false
 
 var player2X = canvas.width - player1X - playerWidth
 var player2Y = canvas.height - playerHeight - groundHeight
@@ -80,7 +87,8 @@ var player2Alive = true
 var sword2Thrower = 2
 var whichPlatformOn2 = -1
 var throwAngle2 = 45
-var angleChange2 = 5
+var angleChange2 = angleDiff
+var sword2FacingRight = false
 
 var swordThrownRightSprSh = []
 swordThrownRightSprSh.length = 4
@@ -91,9 +99,9 @@ for (i=0; i < swordThrownRightSprSh.length; i++) {
 var throw1Anim = 0
 var throw2Anim = 0
 var swordGroundedRightSpr = new Image()
-swordGroundedRightSpr.src = "sprites/bone_grounded.png"
+swordGroundedRightSpr.src = "sprites/bone_grounded_right.png"
 var swordGroundedLeftSpr = new Image()
-swordGroundedLeftSpr.src = "sprites/bone_grounded.png"
+swordGroundedLeftSpr.src = "sprites/bone_grounded_left.png"
 
 var runAnim1 = 0
 var runAnim2 = 0
@@ -117,13 +125,17 @@ for (i=0; i<runWithBoneLeft.length; i++) {
 }
 
 
-var boneLanded = []
-boneLanded.length = 6
-var boneLanded1Anim = boneLanded.length
-var boneLanded2Anim = boneLanded.length
-for (i=0; i<boneLanded.length; i++) {
-	boneLanded[i] = new Image()
-	boneLanded[i].src = "sprites/bone_landed 0"+i.toString()+".png"
+var boneLandedRight = []
+boneLandedRight.length = 5
+var boneLandedLeft = []
+boneLandedLeft.length = 5
+var boneLanded1Anim = boneLandedLeft.length
+var boneLanded2Anim = boneLandedLeft.length
+for (i=0; i<boneLandedLeft.length; i++) {
+	boneLandedRight[i] = new Image()
+	boneLandedRight[i].src = "sprites/bone_landed_right "+i.toString()+".png"
+	boneLandedLeft[i] = new Image()
+	boneLandedLeft[i].src = "sprites/bone_landed_left "+i.toString()+".png"
 }
 
 var deathAnim = 0
@@ -153,41 +165,41 @@ var platforms1 = []
 var floatingPlatformWidth = 150
 var floatingPlatformHeight = 20
 var groundPlatformWidth = 170
-var groundPlatformHeight = 198
+var groundPlatformHeight = 235
 
 platforms1.length = 9
-platforms1[0] = {img: groundPlatform, x: -30, y: 200, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms1[1] = {img: groundPlatform, x: 70, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms1[2] = {img: groundPlatform, x: 170, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms1[3] = {img: groundPlatform, x: canvas.width+30-groundPlatformWidth, y: 200, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms1[4] = {img: groundPlatform, x: canvas.width-70-groundPlatformWidth, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms1[5] = {img: groundPlatform, x: canvas.width-170-groundPlatformWidth, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms1[6] = {img: floatingPlatform, x: (canvas.width-floatingPlatformWidth)/2, y: 210, w: floatingPlatformWidth, h: floatingPlatformHeight}
-platforms1[7] = {img: floatingPlatform, x: 120, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
-platforms1[8] = {img: floatingPlatform, x: canvas.width-120-floatingPlatformWidth, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms1[0] = {img: groundPlatform, x: -30, y: 160, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms1[1] = {img: groundPlatform, x: 70, y: 230, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms1[2] = {img: groundPlatform, x: 170, y: 300, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms1[3] = {img: groundPlatform, x: canvas.width+30-groundPlatformWidth, y: 160, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms1[4] = {img: groundPlatform, x: canvas.width-70-groundPlatformWidth, y: 230, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms1[5] = {img: groundPlatform, x: canvas.width-170-groundPlatformWidth, y: 300, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms1[6] = {img: floatingPlatform, x: (canvas.width-floatingPlatformWidth)/2, y: 170, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms1[7] = {img: floatingPlatform, x: 120, y: 100, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms1[8] = {img: floatingPlatform, x: canvas.width-120-floatingPlatformWidth, y: 100, w: floatingPlatformWidth, h: floatingPlatformHeight}
 stages[0] = platforms1
 
 var platforms2 = []
 platforms2.length = 7
-platforms2[0] = {img: groundPlatform, x: 100, y: 200, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms2[1] = {img: groundPlatform, x: -30, y: 280, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms2[2] = {img: groundPlatform, x: 190, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms2[3] = {img: groundPlatform, x: 680, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms2[4] = {img: groundPlatform, x: 600, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms2[5] = {img: floatingPlatform, x: 380, y: 240, w: floatingPlatformWidth, h: floatingPlatformHeight}
-platforms2[6] = {img: floatingPlatform, x: 500, y: 160, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms2[0] = {img: groundPlatform, x: 100, y: 185, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms2[1] = {img: groundPlatform, x: -30, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms2[2] = {img: groundPlatform, x: 190, y: 300, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms2[3] = {img: groundPlatform, x: 680, y: 230, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms2[4] = {img: groundPlatform, x: 600, y: 300, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms2[5] = {img: floatingPlatform, x: 380, y: 220, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms2[6] = {img: floatingPlatform, x: 500, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
 stages[1] = platforms2
 
 var platforms3 = []
 platforms3.length = 8
-platforms3[0] = {img: groundPlatform, x: -30, y: 200, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms3[1] = {img: groundPlatform, x: 100, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms3[2] = {img: groundPlatform, x: -10, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms3[3] = {img: groundPlatform, x: canvas.width-70-groundPlatformWidth, y: 260, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms3[4] = {img: groundPlatform, x: canvas.width-groundPlatformWidth, y: 320, w: groundPlatformWidth, h: groundPlatformHeight}
-platforms3[5] = {img: floatingPlatform, x: (canvas.width-floatingPlatformWidth)/2, y: 190, w: floatingPlatformWidth, h: floatingPlatformHeight}
-platforms3[6] = {img: floatingPlatform, x: 120, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
-platforms3[7] = {img: floatingPlatform, x: canvas.width-100-floatingPlatformWidth, y: 160, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms3[0] = {img: groundPlatform, x: -30, y: 180, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms3[1] = {img: groundPlatform, x: 100, y: 240, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms3[2] = {img: groundPlatform, x: -10, y: 300, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms3[3] = {img: groundPlatform, x: canvas.width-70-groundPlatformWidth, y: 240, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms3[4] = {img: groundPlatform, x: canvas.width-groundPlatformWidth, y: 300, w: groundPlatformWidth, h: groundPlatformHeight}
+platforms3[5] = {img: floatingPlatform, x: (canvas.width-floatingPlatformWidth)/2, y: 170, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms3[6] = {img: floatingPlatform, x: 120, y: 120, w: floatingPlatformWidth, h: floatingPlatformHeight}
+platforms3[7] = {img: floatingPlatform, x: canvas.width-100-floatingPlatformWidth, y: 140, w: floatingPlatformWidth, h: floatingPlatformHeight}
 stages[2] = platforms3
 
 var platforms = stages[stage]
@@ -240,7 +252,8 @@ function reset() {
 	gameEnd = false
 	deathSoundPlayed = false
 	throwAngle1 = 45
-	angleChange1 = 10
+	angleChange1 = angleDiff
+	sword1FacingRight = false
 
 	player2X = canvas.width - player1X - playerWidth
 	player2Y = canvas.height - playerHeight
@@ -266,9 +279,10 @@ function reset() {
 	player1 = runWithBoneRight[0]
 	player2 = runWithBoneLeft[0]
 	throwAngle2 = 45
-	angleChange2 = 10
-	boneLanded1Anim = boneLanded.length
-	boneLanded2Anim = boneLanded.length
+	angleChange2 = angleDiff
+	boneLanded1Anim = boneLandedLeft.length
+	boneLanded2Anim = boneLandedLeft.length
+	sword2FacingRight = false
 
 	stage = Math.floor(Math.random() * stages.length)
 	platforms = stages[stage]
@@ -294,21 +308,21 @@ function keyDownHandler(e) {
 			if (holding1Player == 1) {
 				throw1Anim = 0
 				if (speed1X > 0) {
-					sword1SpeedX = throwPower * Math.cos(toRadians(throwAngle1)) * throwXSpeedFactor
+					sword1SpeedX = throwPower * Math.cos(toRadians(throwAngle1))
 				} else {
-					sword1SpeedX = -(throwPower * Math.cos(toRadians(throwAngle1))) * throwXSpeedFactor
+					sword1SpeedX = -(throwPower * Math.cos(toRadians(throwAngle1)))
 				}
-				sword1SpeedY = -(throwPower * Math.sin(toRadians(throwAngle1)))
+				sword1SpeedY = -(throwPower * Math.sin(toRadians(throwAngle1))) * throwYSpeedFactor
 				holding1Player = 0
 				sword1Thrower = 1
 			} else {
 				throw2Anim = 0
 				if (speed1X > 0) {
-					sword2SpeedX = throwPower * Math.cos(toRadians(throwAngle1)) * throwXSpeedFactor
+					sword2SpeedX = throwPower * Math.cos(toRadians(throwAngle1))
 				} else {
-					sword2SpeedX = -(throwPower * Math.cos(toRadians(throwAngle1))) * throwXSpeedFactor
+					sword2SpeedX = -(throwPower * Math.cos(toRadians(throwAngle1)))
 				}
-				sword2SpeedY = -(throwPower * Math.sin(toRadians(throwAngle1)))
+				sword2SpeedY = -(throwPower * Math.sin(toRadians(throwAngle1))) * throwYSpeedFactor
 				holding2Player = 0
 				sword2Thrower = 1
 			}
@@ -329,21 +343,21 @@ function keyDownHandler(e) {
 			if (holding1Player == 2) {
 				throw1Anim = 0
 				if (speed2X > 0) {
-					sword1SpeedX = throwPower * Math.cos(toRadians(throwAngle2)) * throwXSpeedFactor
+					sword1SpeedX = throwPower * Math.cos(toRadians(throwAngle2))
 				} else {
-					sword1SpeedX = -(throwPower * Math.cos(toRadians(throwAngle2))) * throwXSpeedFactor
+					sword1SpeedX = -(throwPower * Math.cos(toRadians(throwAngle2)))
 				}
-				sword1SpeedY = -throwPower
+				sword1SpeedY = -(throwPower * Math.sin(toRadians(throwAngle2))) * throwYSpeedFactor
 				holding1Player = 0
 				sword1Thrower = 2
 			} else {
 				throw2Anim = 0
 				if (speed2X > 0) {
-					sword2SpeedX = throwPower * Math.cos(toRadians(throwAngle2)) * throwXSpeedFactor
+					sword2SpeedX = throwPower * Math.cos(toRadians(throwAngle2))
 				} else {
-					sword2SpeedX = -(throwPower * Math.cos(toRadians(throwAngle2))) * throwXSpeedFactor
+					sword2SpeedX = -(throwPower * Math.cos(toRadians(throwAngle2)))
 				}
-				sword2SpeedY = -(throwPower * Math.sin(toRadians(throwAngle2)))
+				sword2SpeedY = -(throwPower * Math.sin(toRadians(throwAngle2))) * throwYSpeedFactor
 				holding2Player = 0
 				sword2Thrower = 2
 			}
@@ -362,7 +376,7 @@ function keyDownHandler(e) {
 	else if (e.keyCode == 67) {
 		if (!player1Alive || !player2Alive) {
 			reset()
-			startAnimating(60)
+			startAnimating(fps)
 		}
 	}
 }
@@ -381,7 +395,7 @@ function togglePause() {
 		started = true
 		running1.play()
 		running2.play()
-		startAnimating(60)
+		startAnimating(fps)
 	} else if (!paused && player1Alive && player2Alive) {
 		running1.pause()
 		running2.pause()
@@ -402,6 +416,7 @@ function drawPlayer1() {
 
 function drawPlayer2() {
 	if (!gameEnd || player2Alive) {
+
 		ctx.drawImage(player2,player2X,player2Y,playerWidth,playerHeight)
 	}
 }
@@ -533,7 +548,7 @@ function detectCollision() {
 function detectPlatformCollisions() {
 	for (i=0; i<platforms.length; i++) {
 		if (player1X > platforms[i].x - playerWidth + playerXOffset && player1X < platforms[i].x + platforms[i].w - playerXOffset &&
-			player1Y + playerHeight > platforms[i].y-20 && player1Y + playerHeight < platforms[i].y &&
+			player1Y + playerHeight > platforms[i].y-10 && player1Y + playerHeight < platforms[i].y+20 &&
 			speed1Y >= 0 && player1Alive) {
 			player1Y = platforms[i].y - playerHeight
 			speed1Y = 0
@@ -542,7 +557,7 @@ function detectPlatformCollisions() {
 			running1.play()
 		}
 		if (player2X > platforms[i].x - playerWidth + playerXOffset && player2X < platforms[i].x + platforms[i].w - playerXOffset &&
-			player2Y + playerHeight > platforms[i].y-20 && player2Y + playerHeight < platforms[i].y &&
+			player2Y + playerHeight > platforms[i].y-10 && player2Y + playerHeight < platforms[i].y+20 &&
 			speed2Y >= 0 && player2Alive) {
 			player2Y = platforms[i].y - playerHeight
 			speed2Y = 0
@@ -551,30 +566,34 @@ function detectPlatformCollisions() {
 			running2.play()
 		}
 		if (sword1X > platforms[i].x && sword1X + swordRadius < platforms[i].x + platforms[i].w &&
-			sword1Y + swordRadius > platforms[i].y-20 && sword1Y + swordRadius < platforms[i].y &&
+			sword1Y + swordRadius > platforms[i].y-10 && sword1Y + swordRadius < platforms[i].y+20 &&
 			sword1SpeedY > 0) {
 			sword1Grounded = true
 			boneLanded1Anim = 0
 			sword1Y = platforms[i].y - swordRadius
 			if (sword1SpeedX > 0) {
-				sword1 = swordGroundedRightSpr
+				// sword1 = swordGroundedRightSpr
+				sword1FacingRight = true
 			} else {
-				sword1 = swordGroundedLeftSpr
+				// sword1 = swordGroundedLeftSpr
+				sword1FacingRight = false
 			}
 			sword1SpeedX = 0
 			sword1SpeedY = 0
 			hitgroundSound.cloneNode().play()
 		}
 		if (sword2X > platforms[i].x && sword2X + swordRadius < platforms[i].x + platforms[i].w &&
-			sword2Y + swordRadius > platforms[i].y-20 && sword2Y + swordRadius < platforms[i].y &&
+			sword2Y + swordRadius > platforms[i].y-10 && sword2Y + swordRadius < platforms[i].y+20 &&
 			sword2SpeedY > 0) {
 			sword2Grounded = true
 			boneLanded2Anim = 0
 			sword2Y = platforms[i].y - swordRadius
 			if (sword2SpeedX > 0) {
 				sword2 = swordGroundedRightSpr
+				sword2FacingRight = true
 			} else {
 				sword2 = swordGroundedLeftSpr
+				sword2FacingRight = false
 			}
 			sword2SpeedX = 0
 			sword2SpeedY = 0
@@ -736,9 +755,11 @@ function sword1Handler() {
 		sword1Y = canvas.height - swordRadius - groundHeight
 		boneLanded1Anim = 0
 		if (sword1SpeedX > 0) {
-			sword1 = swordGroundedRightSpr
+			// sword1 = swordGroundedRightSpr
+			sword1FacingRight = true
 		} else {
-			sword1 = swordGroundedLeftSpr
+			// sword1 = swordGroundedLeftSpr
+			sword1FacingRight = false
 		}
 		sword1SpeedX = 0
 		sword1SpeedY = 0
@@ -769,9 +790,11 @@ function sword2Handler() {
 		sword2Y = canvas.height - swordRadius - groundHeight
 		boneLanded2Anim = 0
 		if (sword2SpeedX > 0) {
-			sword2 = swordGroundedRightSpr
+			// sword2 = swordGroundedRightSpr
+			sword2FacingRight = true
 		} else {
-			sword2 = swordGroundedLeftSpr
+			// sword2 = swordGroundedLeftSpr
+			sword2FacingRight = false
 		}
 		sword2SpeedX = 0
 		sword2SpeedY = 0
@@ -939,20 +962,38 @@ function draw() {
 		}
 
 		if (sword1Grounded) {
-			if (boneLanded1Anim < boneLanded.length) {
-				sword1 = boneLanded[boneLanded1Anim]
-				boneLanded1Anim++
+			if (sword1FacingRight) {
+				if (boneLanded1Anim < boneLandedRight.length) {
+					sword1 = boneLandedRight[boneLanded1Anim]
+					boneLanded1Anim++
+				} else {
+					sword1 = swordGroundedRightSpr
+				}
 			} else {
-				sword1 = swordGroundedLeftSpr
+				if (boneLanded1Anim < boneLandedLeft.length) {
+					sword1 = boneLandedLeft[boneLanded1Anim]
+					boneLanded1Anim++
+				} else {
+					sword1 = swordGroundedLeftSpr
+				}
 			}
 		}
 
 		if (sword2Grounded) {
-			if (boneLanded2Anim < boneLanded.length) {
-				sword2 = boneLanded[boneLanded2Anim]
-				boneLanded2Anim++
+			if (sword2FacingRight) {
+				if (boneLanded2Anim < boneLandedRight.length) {
+					sword2 = boneLandedRight[boneLanded2Anim]
+					boneLanded2Anim++
+				} else {
+					sword2 = swordGroundedRightSpr
+				}
 			} else {
-				sword2 = swordGroundedLeftSpr
+				if (boneLanded2Anim < boneLandedLeft.length) {
+					sword2 = boneLandedLeft[boneLanded2Anim]
+					boneLanded2Anim++
+				} else {
+					sword2 = swordGroundedLeftSpr
+				}
 			}
 		}
 
