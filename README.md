@@ -1,6 +1,8 @@
 # JS-Platform-Game
 A 2-player platformer where players try hitting each other with projectiles.
 
+Game is deployed at https://richard-cao226.github.io/JS-Platform-Game/
+
 ![image](https://user-images.githubusercontent.com/44596884/137528300-2c2dd345-06e5-49b3-8fbf-ef7c9e6ba372.png)
 
 ## Controls
